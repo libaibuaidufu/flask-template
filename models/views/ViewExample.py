@@ -2,8 +2,10 @@
 from models import db, CRUDMixin
 
 
-class Example(db.Model, CRUDMixin):
-    __tablename__ = "example"
+class ViewExample(db.Model, CRUDMixin):
+    __tablename__ = "view_example"
+
+    id = db.Column(db.Integer, primary_key=True, nullable=False)
     name = db.Column(db.String(50))
     title = db.Column(db.String(100))
     is_albums = db.Column(db.Integer)
@@ -27,7 +29,7 @@ class Example(db.Model, CRUDMixin):
         }
         return info_dict
 
-    def __repr__(self):
+    def __str__(self):
         return 'id : %s' % self.id
 
     tableChangeDict = {
@@ -41,5 +43,3 @@ class Example(db.Model, CRUDMixin):
     }
 
     intList = ['id', 'isAlbums', 'isAttach', 'isSpec', 'sortId']
-
-

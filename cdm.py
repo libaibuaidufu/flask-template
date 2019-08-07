@@ -17,13 +17,14 @@ def run():
     data = headType[0]
     with app.test_request_context():
         runmodel = Models(db, dbname="dev")
-        runmodel.main(["example"], dataType=data)
-        craeteapi = CreateApi(db, dbname="dev")
-        craeteapi.main(["example"], dataType=data)
+        runmodel.main(["view_example"], dataType=data)
+        # craeteapi = CreateApi(db, dbname="dev")
+        # craeteapi.main(["view_example"], dataType=data)
 
 
 # 创建视图
 from models.views.create_view import create_view
+
 
 if __name__ == '__main__':
     run()

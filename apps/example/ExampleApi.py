@@ -6,7 +6,7 @@ from apps.example import example_api
 from common.ReturnMessage import returnMsg, errorCode, returnErrorMsg
 from models.A_BaseModel import TransactionClass, serachView
 from models.Example import Example
-
+from models.views.ViewExample import ViewExample
 
 # select list view
 @example_api.route("/findViewExampleByCondition", methods=["POST"])
@@ -16,7 +16,7 @@ def findViewExampleByCondition():
     groupBy = "group by id"
     orderByStr = " order by sort_id desc "
     otherCondition = " id != 99 "
-    resultList = serachView(dataDict, Example, groupBy=groupBy, orderByStr=orderByStr,
+    resultList = serachView(dataDict, ViewExample, groupBy=groupBy, orderByStr=orderByStr,
                             otherCondition=otherCondition)
     infoList = []
     if resultList:

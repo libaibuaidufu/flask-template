@@ -8,7 +8,7 @@ import datetime
 import os
 
 baseDir = os.getcwd()
-dev_db = rf"{os.path.join(baseDir, 'settings/dev.db')}"
+dev_db = rf"{os.path.join(baseDir, 'settings/dev.sqlite')}"
 refresh_delta = datetime.timedelta(days=30)
 delta = datetime.timedelta(hours=10)
 

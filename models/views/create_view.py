@@ -22,11 +22,10 @@ class CreateView(Executable, ClauseElement):
 
 @compiles(CreateView)
 def visit_create_view(element, compiler, **kw):
-    return "CREATE VIEW IF NOT EXISTS %s AS %s" % (
-        element.name,
-        compiler.process(element.select, literal_binds=True)
-    )
-
+    return "CREATE VIEW  %s AS %s" % (
+         element.name,
+         compiler.process(element.select, literal_binds=True)
+         )
 
 # create_view
 def create_view():
@@ -35,7 +34,7 @@ def create_view():
     :return:
     """
     app = create_app(config="dev_config.py")
-    definition = text("""select * from site_channel where id>=1""")
+    definition = text("""select * from example where id>=1""")
     with app.app_context():
-        createview = CreateView('view_site_channel', definition)
+        createview = CreateView('view_example', definition)
         db.engine.execute(createview)

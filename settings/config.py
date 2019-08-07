@@ -35,7 +35,7 @@ UPLOAD_FOLDER = 'static/uploads'
 TEMP_UPLOAD_FOLDER = "temps"
 
 
-def create_app(config=None):
+def create_app(config=None) -> Flask:
     app.config["SECRET_KEY"] = uuid.uuid1()
     app.json_encoder = JSONEncoder
 
