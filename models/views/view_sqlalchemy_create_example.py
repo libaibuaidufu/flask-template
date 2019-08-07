@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Time    : 2019/8/2 15:34
-# @File    : view_dfk.py
+# @File    : view_sqlalchemy_create_example.py
 # @author  : dfkai
 # @Software: PyCharm
 # !/usr/bin/env python
@@ -10,7 +10,7 @@
 # @File    : ExampleModelApi.py
 # @author  : dfkai
 # @Software: PyCharm
-from sqlalchemy import Table,text
+from sqlalchemy import Table, text
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.sql.expression import Executable, ClauseElement
 
@@ -61,4 +61,5 @@ except:
     pass
 finally:
     import os
-    os.remove(r"C:\Users\libai\new_github\yaan\boss\boss-backend\models\views\test.sqlite")
+    base = os.path.join(os.path.dirname(__file__), "test.sqlite")
+    os.remove(base)
