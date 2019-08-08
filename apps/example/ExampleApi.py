@@ -54,7 +54,7 @@ def findExampleByCondition():
 def addExample():
     jsonData: str = request.get_data()
     dataDict: dict = json.loads(jsonData)
-    table = Example.create(**dataDict)
+    table = Example.insert(**dataDict)
     if table:
         resultDict = returnMsg(table.to_dict())
     else:
@@ -71,7 +71,7 @@ def updateExample():
     if not id:
         resultDict = returnErrorMsg(errorCode["param_error"])
         return jsonify((resultDict))
-    table = Example.get_into_by_id(id)
+    table = Example.get_ins_by_id(id)
     if table.update(**dataDict):
         resultDict = returnMsg(table.to_dict())
     else:
@@ -109,7 +109,7 @@ def getExampleInfo():
     if not id:
         resultDict = returnErrorMsg(errorCode["param_error"])
         return jsonify(resultDict)
-    table = Example.get_into_by_id(id)
+    table = Example.get_ins_by_id(id)
     if table:
         infoDict = table.to_dict()
         resultDict = returnMsg(infoDict)
