@@ -3,7 +3,7 @@
 from flask import request, json, jsonify
 
 from apps.example import example_api
-from common.ReturnMessage import returnMsg, errorCode, returnErrorMsg
+from utils.ReturnMessage import returnMsg, errorCode, returnErrorMsg
 from models.Example import Example
 from models.views.ViewExample import ViewExample
 from settings.dataBase import TransactionClass, serachView

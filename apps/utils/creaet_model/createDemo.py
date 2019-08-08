@@ -6,10 +6,9 @@ data = """# -*- coding: utf-8 -*-
 from flask import request, json, jsonify
 
 from apps.example import example_api
-from common.ReturnMessage import returnMsg, errorCode, returnErrorMsg
-from models.A_BaseModel import TransactionClass, serachView
+from utils.ReturnMessage import returnMsg, errorCode, returnErrorMsg
 from models.{ModelName} import {ModelName}
-
+from settings.dataBase import TransactionClass, serachView
 
 
 # select list view

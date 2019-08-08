@@ -5,17 +5,19 @@
 # @author  : dfkai
 # @Software: PyCharm
 import os
+import sys
 import uuid
+from datetime import datetime, date
+from decimal import Decimal
 
+# from bson.objectid import ObjectId
 from flask import Flask
+from flask import json
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.contrib.cache import SimpleCache, MemcachedCache
 
-from common.FormatStr import JSONEncoder
-
 baseDir = os.getcwd()
-
-
+sys.path.insert(0, os.path.join(baseDir, "apps"))
 
 # 缓存
 try:
@@ -72,3 +74,15 @@ def base_config(app):
         os.mkdir(app.config['UPLOAD_FOLDER'])
         if not os.path.exists(app.config['TEMP_UPLOAD_FOLDER']):
             os.mkdir(app.config['TEMP_UPLOAD_FOLDER'])
+
+
+# json 时间 和 Decimal 格式处理
+class JSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, (date, datetime)):
+            return str(o)
+        # if isinstance(o, ObjectId):
+        #     return str(o)
+        if isinstance(o, Decimal):
+            return float(o)
+        return json.JSONEncoder.default(self, o)

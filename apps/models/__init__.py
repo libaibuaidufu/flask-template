@@ -5,4 +5,4 @@
 # @author  : dfkai
 # @Software: PyCharm
 
-from models.Example import Example
+from .Example import Example

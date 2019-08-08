@@ -9,8 +9,8 @@ def run():
     sqlite 不能使用
     :return:
     """
-    from common.creaet_model.createDemo import CreateApi
-    from common.creaet_model.createModels import Models
+    from utils.creaet_model.createDemo import CreateApi
+    from utils.creaet_model.createModels import Models
     from settings.config import create_app, db
     app = create_app(config="dev_config.py")
     headType = ["examples"]
@@ -24,7 +24,6 @@ def run():
 
 # 创建视图
 from models.views.create_view import create_view
-
 
 if __name__ == '__main__':
     run()
