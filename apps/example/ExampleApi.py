@@ -4,9 +4,10 @@ from flask import request, json, jsonify
 
 from apps.example import example_api
 from common.ReturnMessage import returnMsg, errorCode, returnErrorMsg
-from models.A_BaseModel import TransactionClass, serachView
 from models.Example import Example
 from models.views.ViewExample import ViewExample
+from settings.dataBase import TransactionClass, serachView
+
 
 # select list view
 @example_api.route("/findViewExampleByCondition", methods=["POST"])

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from models import db, CRUDMixin
+from settings.dataBase import CRUDMixin, db
 
 
 class Example(db.Model, CRUDMixin):
@@ -41,5 +41,3 @@ class Example(db.Model, CRUDMixin):
     }
 
     intList = ['id', 'isAlbums', 'isAttach', 'isSpec', 'sortId']
-
-

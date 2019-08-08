@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Time    : 2019/7/19 16:06
-# @File    : A_BaseModel.py
+# @File    : dataBase.py
 # @author  : dfkai
 # @Software: PyCharm
 from sqlalchemy import text
 
-from models import db
-from settings.config import logger
+from settings.config import db
+from settings.log import logger
 
 
 class CRUDMixin(object):

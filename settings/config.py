@@ -4,7 +4,6 @@
 # @File    : config.py
 # @author  : dfkai
 # @Software: PyCharm
-import logging.config
 import os
 import uuid
 
@@ -14,9 +13,9 @@ from werkzeug.contrib.cache import SimpleCache, MemcachedCache
 
 from common.FormatStr import JSONEncoder
 
-# 日志
-logging.config.fileConfig("log.conf")
-logger = logging.getLogger("cse")
+baseDir = os.getcwd()
+
+
 
 # 缓存
 try:
@@ -64,7 +63,6 @@ def init_apps(app):
 
 def base_config(app):
     # 文件上传配置
-    baseDir = os.getcwd()
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16M
 
     app.config["ALLOWED_EXTENSIONS"] = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', "doc", "docx"}
