@@ -32,7 +32,7 @@ app = Flask(__name__)
 db = SQLAlchemy()
 
 # 文件路径
-UPLOAD_FOLDER = 'static/uploads'
+UPLOAD_FOLDER = 'uploads'
 TEMP_UPLOAD_FOLDER = "temps"
 
 
