@@ -71,9 +71,9 @@ def base_config(app):
     app.config['UPLOAD_FOLDER'] = os.path.join(baseDir, UPLOAD_FOLDER)
     app.config['TEMP_UPLOAD_FOLDER'] = os.path.join(app.config['UPLOAD_FOLDER'], TEMP_UPLOAD_FOLDER)
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
-        os.mkdir(app.config['UPLOAD_FOLDER'])
+        os.makedirs(app.config['UPLOAD_FOLDER'])
         if not os.path.exists(app.config['TEMP_UPLOAD_FOLDER']):
-            os.mkdir(app.config['TEMP_UPLOAD_FOLDER'])
+            os.makedirs(app.config['TEMP_UPLOAD_FOLDER'])
 
 
 # json 时间 和 Decimal 格式处理
