@@ -121,10 +121,14 @@ class CRUDMixin(object):
         """
         if key.islower():
             return key
+        newKey = ""
         for index, pk in enumerate(key):
             if pk in "ABCDEFGHIJKLMNOPQRSTUVWXZY":
-                key.replace(pk, f"_{pk.lower()}")
-        return key
+                # key.replace(pk, f"_{pk.lower()}")
+                newKey += f"_{pk.lower()}"
+            else:
+                newKey += pk
+        return newKey
 
     def up_first_key(self, dataDict):
         """
@@ -190,9 +194,7 @@ def serachView(dataDict: dict, tableName: db.Model, groupBy: str = "", orderBySt
         for key, value in multiSort.items():
             orderStr = f"{tableName.tableChangeDict[key]} {value}"
             orderList.append(orderStr)
-        if not orderByStr:
-            orderByStr = " order by "
-        else:
+        if orderByStr and orderList:
             orderByStr += ","
         orderByStr += " , ".join(orderList)
 
@@ -214,9 +216,12 @@ def serachView(dataDict: dict, tableName: db.Model, groupBy: str = "", orderBySt
             conditionList.append(sql_condition)
         sqlStr = " and ".join(conditionList)
     if sqlStr.strip():
-        sqlStr = sqlStr + " and " + otherCondition + groupBy + orderByStr
+        if otherCondition:
+            sqlStr = sqlStr + " and " + otherCondition
+        else:
+            sqlStr = sqlStr
     else:
-        sqlStr = otherCondition + groupBy + orderByStr
+        sqlStr = otherCondition
     # 分页编辑
     pageDic: dict = dataDict.get("page", {})
     pageIndex: int = pageDic.get("pageIndex", 1)
@@ -225,14 +230,19 @@ def serachView(dataDict: dict, tableName: db.Model, groupBy: str = "", orderBySt
     if pageSize > 50: pageSize = 50
     try:
         sqlStrquery = text(sqlStr)
+        orderByStr = text(orderByStr.strip())
+        groupBy = text(groupBy.strip())
         if sqlStr.strip():
-            adminsList = tableName.query.filter(sqlStrquery).paginate(pageIndex, per_page=pageSize, error_out=False)
-            # adminsList = db.session.query(tableName).filter(sqlStrquery).offset((pageIndex - 1) * pageSize).limit(pageSize).all()
+            tableList = tableName.query.filter(sqlStrquery).group_by(groupBy).order_by(orderByStr).paginate(pageIndex,
+                                                                                                            per_page=pageSize,
+                                                                                                            error_out=False)
         else:
-            adminsList = tableName.query.paginate(pageIndex, per_page=pageSize, error_out=False)
-            # adminsList = db.session.query(tableName).offset((pageIndex - 1) * pageSize).limit(pageSize).all()
-        # 这样返回可以使用更多分页的特性
-        return adminsList
+            tableList = tableName.query.group_by(groupBy).order_by(orderByStr).paginate(pageIndex, per_page=pageSize,
+                                                                                        error_out=False)
+        # tableList = db.session.query(tableName).filter(sqlStrquery).offset((pageIndex - 1) * pageSize).limit(pageSize).all()
+        # tableList = db.session.query(tableName).offset((pageIndex - 1) * pageSize).limit(pageSize).all()
+        # 这样返回可以使用更多分页的特性 tableList.items tableList.total ..
+        return tableList
     except Exception as  e:
         logger.error(e)
         return []
@@ -588,9 +598,7 @@ def serachViewBase(dataDict: dict, tableName: db.Model, groupBy: str = "", order
         for key, value in multiSort.items():
             orderStr = f"{key} {value}"
             orderList.append(orderStr)
-        if not orderByStr:
-            orderByStr = " order by "
-        else:
+        if orderByStr and orderList:
             orderByStr += ","
         orderByStr += " , ".join(orderList)
 
@@ -615,9 +623,12 @@ def serachViewBase(dataDict: dict, tableName: db.Model, groupBy: str = "", order
             conditionList.append(sql_condition)
         sqlStr = " and ".join(conditionList)
     if sqlStr.strip():
-        sqlStr = sqlStr + " and " + otherCondition + groupBy + orderByStr
+        if otherCondition:
+            sqlStr = sqlStr + " and " + otherCondition
+        else:
+            sqlStr = sqlStr
     else:
-        sqlStr = otherCondition + groupBy + orderByStr
+        sqlStr = otherCondition
     # 分页编辑
     pageDic: dict = dataDict.get("page", {})
     pageIndex: int = pageDic.get("pageIndex", 1)
@@ -626,14 +637,19 @@ def serachViewBase(dataDict: dict, tableName: db.Model, groupBy: str = "", order
     if pageSize > 50: pageSize = 50
     try:
         sqlStrquery = text(sqlStr)
+        orderByStr = text(orderByStr.strip())
+        groupBy = text(groupBy.strip())
         if sqlStr.strip():
-            adminsList = tableName.query.filter(sqlStrquery).paginate(pageIndex, per_page=pageSize, error_out=False)
-            # adminsList = db.session.query(tableName).filter(sqlStrquery).offset((pageIndex - 1) * pageSize).limit(pageSize).all()
+            tableList = tableName.query.filter(sqlStrquery).group_by(groupBy).order_by(orderByStr).paginate(pageIndex,
+                                                                                                            per_page=pageSize,
+                                                                                                            error_out=False)
         else:
-            adminsList = tableName.query.paginate(pageIndex, per_page=pageSize, error_out=False)
-            # adminsList = db.session.query(tableName).offset((pageIndex - 1) * pageSize).limit(pageSize).all()
-        # 这样返回可以使用更多分页的特性
-        return adminsList
+            tableList = tableName.query.group_by(groupBy).order_by(orderByStr).paginate(pageIndex, per_page=pageSize,
+                                                                                        error_out=False)
+        # tableList = db.session.query(tableName).filter(sqlStrquery).offset((pageIndex - 1) * pageSize).limit(pageSize).all()
+        # tableList = db.session.query(tableName).offset((pageIndex - 1) * pageSize).limit(pageSize).all()
+        # 这样返回可以使用更多分页的特性 tableList.items tableList.total ..
+        return tableList
     except Exception as  e:
         logger.error(e)
         return []
