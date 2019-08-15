@@ -7,8 +7,11 @@
 """
 正式使用
 """
+import os
 
 from settings.config import create_app
+
+os.environ.setdefault("FLASK_SETTINGS_MODULE", "pro_config.py")
 
 app = create_app(config="pro_config.py")
 
