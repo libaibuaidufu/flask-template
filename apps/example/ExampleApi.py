@@ -14,8 +14,8 @@ from settings.dataBase import TransactionClass, serachView
 def findViewExampleByCondition():
     jsonData: str = request.get_data()
     dataDict: dict = json.loads(jsonData)
-    groupBy = "group by id"
-    orderByStr = " order by sort_id desc "
+    groupBy = " id"
+    orderByStr = " sort_id desc "
     otherCondition = " id != 99 "
     resultList = serachView(dataDict, ViewExample, groupBy=groupBy, orderByStr=orderByStr,
                             otherCondition=otherCondition)
@@ -124,7 +124,7 @@ def testTrans():
     jsonData: str = request.get_data()
     dataDict: dict = json.loads(jsonData)
     trans = TransactionClass()
-    table = Example.insert(dataDict)
+    table = Example.insert(**dataDict)
     table = trans.save(table)
     print(table.to_dict())
     try:
@@ -133,3 +133,15 @@ def testTrans():
     except:
         trans.rollback()
     return jsonify(returnMsg())
+
+
+@example_api.route("/testSelectForUpdate")
+def testSelectForUpdate():
+    example = Example.query.filter(Example.id == 1).with_for_update()
+    print(example)
+    print(example.one().name)
+    import time
+    time.sleep(20)
+    dataDict = dict(name="libai")
+    example.update(dataDict)
+    return jsonify(dict(code=1))

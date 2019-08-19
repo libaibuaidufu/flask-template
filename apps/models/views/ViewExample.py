@@ -4,7 +4,8 @@ from settings.dataBase import CRUDMixin, db
 
 class ViewExample(db.Model, CRUDMixin):
     __tablename__ = "view_example"
-
+    # __abstract__ = True
+    __table_args__ = {"info": dict(is_view=True)}  # 不会被创建成表
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     name = db.Column(db.String(50))
     title = db.Column(db.String(100))

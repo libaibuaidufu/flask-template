@@ -1,0 +1,10 @@
+[2019-08-16 17:54:49][dataBase.py][line:247][ERROR] 'NoneType' object has no attribute 'filter'
+[2019-08-16 17:55:49][dataBase.py][line:247][ERROR] 'NoneType' object has no attribute 'filter'
+[2019-08-16 17:56:21][dataBase.py][line:247][ERROR] (sqlite3.OperationalError) near "group": syntax error
+[SQL: SELECT view_example.id AS view_example_id, view_example.name AS view_example_name, view_example.title AS view_example_title, view_example.is_albums AS view_example_is_albums, view_example.is_attach AS view_example_is_attach, view_example.is_spec AS view_example_is_spec, view_example.sort_id AS view_example_sort_id 
+FROM view_example 
+WHERE  id != 99  GROUP BY group by id ORDER BY order by sort_id desc
+ LIMIT ? OFFSET ?]
+[parameters: (20, 0)]
+(Background on this error at: http://sqlalche.me/e/e3q8)
+[2019-08-16 17:57:46][dataBase.py][line:247][ERROR] 'NoneType' object has no attribute 'filter'
