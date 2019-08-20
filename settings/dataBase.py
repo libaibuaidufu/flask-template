@@ -10,10 +10,9 @@ from settings.config import db
 from settings.log import logger
 
 
-# 驼峰结构 版本
-class CRUDMixin(object):
+# 驼峰 Not id
+class CRUDMixinNotId(object):
     __table_args__ = {'extend_existing': True}
-    id = db.Column(db.Integer, primary_key=True)
 
     @classmethod
     def insert(cls, is_commit: bool = True, **kwargs: dict):
@@ -130,7 +129,7 @@ class CRUDMixin(object):
                 newKey += pk
         return newKey
 
-    def up_first_key(self, dataDict):
+    def up_first_key(self, dataDict: dict):
         """
         单词下划线 转换为 驼峰
         :param dataDict:
@@ -139,16 +138,45 @@ class CRUDMixin(object):
         infoDict: dict = dict()
         for key, value in dataDict.items():
             n_key = ""
-            for index, pk in enumerate(key.split("_")):
+            key_list: list = key.split("_")
+            for index, pk in enumerate(key_list):
                 if index == 0:
                     n_key += pk
                 else:
                     n_key += pk[:1].upper() + pk[1:].lower()
-                infoDict[n_key] = value
+                if len(key_list) == index + 1:
+                    infoDict[n_key] = value
         return infoDict
 
     def to_dict(self):
         return {c.name: getattr(self, c.name, None) for c in self.__table__.columns}
+
+    def get_info_by_dict_table(self, get_list: list = [], is_in_use: bool = False, is_not_in_use: bool = False):
+        """
+        通过 实例__dict__直接获取 字典格式，但是里面有一个不需要的 _sa_instance_state 直接pop掉
+        但是不是驼峰结构 可以在转换一下
+        改用 to_dict
+        :return:
+        """
+        dataDict: dict = self.to_dict_table(get_list, is_in_use, is_not_in_use)
+        infoDict: dict = self.up_first_key(dataDict)
+        return infoDict
+
+    def to_dict_table(self, re_list: list = [], is_in_use: bool = False, is_not_in_use: bool = False):
+        infoDict = dict()
+        if is_in_use or is_not_in_use:
+            re_list = list(map(lambda x: x.__str__().rsplit(".", 1)[-1], re_list))
+        for c in self.__table__.columns:
+            if c.name in re_list and is_in_use:
+                infoDict[c.name] = getattr(self, c.name, None)
+            if c.name not in re_list and is_not_in_use:
+                infoDict[c.name] = getattr(self, c.name, None)
+        return infoDict
+
+
+# 驼峰结构 版本
+class CRUDMixin(CRUDMixinNotId):
+    id = db.Column(db.Integer, primary_key=True)
 
 
 # 分页 驼峰 搜索
