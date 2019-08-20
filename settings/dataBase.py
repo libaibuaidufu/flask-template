@@ -25,10 +25,11 @@ class CRUDMixinNotId(object):
         for key, value in kwargs.items():
             key = cls.check_Up_key_in_str(key)
             tableDict[key] = value
+        # print(tableDict)
         instance = cls(**tableDict)
         return instance.save(is_commit)
 
-    def save(self, is_commit):
+    def save(self, is_commit=True):
         try:
             db.session.add(self)
             if is_commit:
@@ -102,13 +103,12 @@ class CRUDMixinNotId(object):
         :return:
         """
         dataDict = self.to_dict()
+        infoDict = self.up_first_key(dataDict)
         if is_key:
             has_dict = dict()
             for key in get_list:
-                has_dict[key] = dataDict.get(key, None)
-            infoDict = self.up_first_key(has_dict)
-        else:
-            infoDict = self.up_first_key(dataDict)
+                has_dict[key] = infoDict.get(key, None)
+            infoDict = has_dict
         return infoDict
 
     @classmethod
@@ -135,7 +135,7 @@ class CRUDMixinNotId(object):
         :param dataDict:
         :return:
         """
-        infoDict: dict = dict()
+        infoDict = dict()
         for key, value in dataDict.items():
             n_key = ""
             key_list: list = key.split("_")
