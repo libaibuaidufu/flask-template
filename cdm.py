@@ -4,14 +4,17 @@
 # @File    : cdm.py
 # @author  : dfkai
 # @Software: PyCharm
+from models.views.create_view import create_view
+from unup.creaet_model.createDemo import CreateApi
+from unup.creaet_model.createModels import Models
+from settings.config import create_app, db
+
+
 def run():
     """
     sqlite 不能使用
     :return:
     """
-    from utils.creaet_model.createDemo import CreateApi
-    from utils.creaet_model.createModels import Models
-    from settings.config import create_app, db
     app = create_app(config="dev_config.py")
     headType = ["examples"]
     data = headType[0]
@@ -22,9 +25,5 @@ def run():
         # craeteapi.main(["view_example"], dataType=data)
 
 
-# 创建视图
-from models.views.create_view import create_view
-
 if __name__ == '__main__':
-    # run()
-    create_view()
+    run()

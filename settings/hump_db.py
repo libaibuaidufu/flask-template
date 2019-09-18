@@ -1,99 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Time    : 2019/7/19 16:06
-# @File    : dataBase.py
+# @Time    : 2019/9/18 13:46
+# @File    : hump_db.py
 # @author  : dfkai
 # @Software: PyCharm
-from datetime import datetime
 
 from sqlalchemy import text
 
 from settings.config import db
+from settings.dataBase import Common
 from settings.log import logger
 
-now = datetime.now()
-now_date = datetime.now().date()
 
-
-class Common(object):
-    @classmethod
-    def check_data_dict_has_must_key(cls, dataDict: dict, checkList: list) -> bool:
-        """
-        检查 是否含有必有的字段
-        :param dataDict:
-        :param checkList:
-        :return:
-        """
-        for checkValue in checkList:
-            if not dataDict.get(checkValue, None):
-                return False
-        return True
-
-    @classmethod
-    def pop_data_dict_no_update_key(cls, dataDict: dict, popList: list) -> dict:
-        """
-        去掉拒绝更新的字段
-        :param dataDict:
-        :param popList:
-        :return:
-        """
-        for checkValue in popList:
-            if checkValue in dataDict.keys():
-                dataDict.pop(checkValue)
-        return dataDict
-
-    @classmethod
-    def check_Up_key_in_str(cls, key: str):
-        """
-        解决驼峰单词 不是模型命名字段
-        classmethod 是为了 给insert使用
-        :param key:
-        :return:
-        """
-        if key.islower():
-            return key
-        newKey = ""
-        for index, pk in enumerate(key):
-            if pk in "ABCDEFGHIJKLMNOPQRSTUVWXZY":
-                newKey += f"_{pk.lower()}"
-            else:
-                newKey += pk
-        return newKey
-
-    @classmethod
-    def up_first_key(cls, dataDict):
-        """
-        单词下划线 转换为 驼峰
-        :param dataDict:
-        :return:
-        """
-        infoDict = dict()
-        for key, value in dataDict.items():
-            n_key = ""
-            key_list = key.split("_")
-            for index, pk in enumerate(key_list):
-                if index == 0:
-                    n_key += pk
-                else:
-                    n_key += pk[:1].upper() + pk[1:].lower()
-                if len(key_list) == index + 1:
-                    infoDict[n_key] = value
-        return infoDict
-
-
-# 非驼峰结构 not Id
+# Not id
 class CRUDMixinNotId(Common):
-    """
-    基础版本 没有使用驼峰转换
-    """
     __table_args__ = {'extend_existing': True}
-    id = db.Column(db.Integer, primary_key=True)
 
     @classmethod
     def insert(cls, *args, **kwargs: dict):
         """
+        先把驼峰结构转换为 小写加下划线 | isDelete -> is_delete
         :param args: list 按照顺序 进行填充值 跳过主键
-        :param kwargs: dict 小写
+        :param kwargs: dict
         :return:
         """
         tableDict = dict()
@@ -108,16 +36,12 @@ class CRUDMixinNotId(Common):
                 index += 1
         if kwargs:
             for key, value in kwargs.items():
+                key = cls.check_Up_key_in_str(key)  # 非驼峰可以注释
                 tableDict[key] = value
         instance = cls(**tableDict)
         return instance.save()
 
     def save(self):
-        """
-        保存
-        :param is_commit:
-        :return:
-        """
         try:
             db.session.add(self)
             db.session.commit()
@@ -125,60 +49,49 @@ class CRUDMixinNotId(Common):
         except Exception as e:
             db.session.rollback()
             logger.error(e)
-            return 0
+            return False
 
-    def update(self, **kwargs):
-        """
-        更新
-        :param is_commit:
-        :param kwargs:
-        :return:
-        """
+    def update(self, **kwargs: dict):
         try:
             for key, value in kwargs.items():
+                key = self.check_Up_key_in_str(key)  # 解决驼峰单词 不是模型命名单词 # # 非驼峰可以注释
                 setattr(self, key, value)
             return self.save()
         except Exception as e:
             db.session.rollback()
             logger.error(e)
-            return 0
+            return False
 
     def delete(self):
-        """
-        删除
-        :param is_commit:
-        :return:
-        """
         try:
             db.session.delete(self)
             db.session.commit()
             return True
         except Exception as e:
-            # 加入数据库commit提交失败，必须回滚！！！
             db.session.rollback()
             logger.error(e)
-            return 0
+            return False
 
     @classmethod
     def get_ins_by_id(cls, id):
-        """
-        通过id获取实例
-        :param id:
-        :return:
-        """
         if any((isinstance(id, str) and id.isdigit(),
                 isinstance(id, (int, float))), ):
             return cls.query.get(int(id))
         return False
 
-    def get_dict(self, re_list: list = [], not_list=[]):
+    def get_dict(self, re_list: list = [], not_list=[], is_lower: bool = False):
         """
         通过 实例__dict__直接获取 字典格式，但是里面有一个不需要的 _sa_instance_state 直接pop掉
         但是不是驼峰结构 可以在转换一下
         改用 to_dict
         :return:
         """
-        infoDict = self.to_dict()
+        dataDict = self.to_dict()
+        infoDict = self.up_first_key(dataDict)
+        if is_lower:
+            _kv = {v: k for k, v in self.tableChangeDict.items()}
+            not_list = [_kv[key] if _kv.get(key, "") else key for key in not_list]
+            re_list = [_kv[key] if _kv.get(key, "") else key for key in re_list]
         if not_list:
             for key in not_list:
                 if key in infoDict:
@@ -208,13 +121,14 @@ class CRUDMixinNotId(Common):
                 infoDict[c.name] = getattr(self, c.name, None)
             if c.name not in re_list and is_not_in_use:
                 infoDict[c.name] = getattr(self, c.name, None)
+        infoDict = self.up_first_key(infoDict)
         return infoDict
 
     def to_dict(self):
         return {c.name: getattr(self, c.name, None) for c in self.__table__.columns}
 
 
-# 非驼峰结构
+# 驼峰结构 版本
 class CRUDMixin(CRUDMixinNotId):
     __table_args__ = {'extend_existing': True}
 
@@ -227,9 +141,8 @@ class CRUDMixin(CRUDMixinNotId):
         return False
 
 
-# 非驼峰 分页基础版 搜索
-def serachView(dataDict: dict, tableName: db.Model, groupBy: str = "", orderByStr: str = "",
-               otherCondition: str = ""):
+# 分页 驼峰 搜索
+def serachView(dataDict: dict, tableName: db.Model, groupBy: str = "", orderByStr: str = "", otherCondition: str = ""):
     """
     reqeusts args:
     {
@@ -269,7 +182,7 @@ def serachView(dataDict: dict, tableName: db.Model, groupBy: str = "", orderBySt
     if multiSort:
         orderList = []
         for key, value in multiSort.items():
-            orderStr = f"{key} {value}"
+            orderStr = f"{tableName.tableChangeDict[key]} {value}"
             orderList.append(orderStr)
         if orderByStr and orderList:
             orderByStr += ","
@@ -282,19 +195,16 @@ def serachView(dataDict: dict, tableName: db.Model, groupBy: str = "", orderBySt
         conditionList: list = []
         for cond in condition:
             field, op, value = cond["field"], cond["op"], cond["value"]
-            if field not in tableName.__table__.columns:
-                # 如果模型中没有此字段 就跳过
-                continue
             if op == "llike":
-                sql_condition = f"{field} {opDic[op]}  '%{str(value)}'"
+                sql_condition = f"{tableName.tableChangeDict[field]} {opDic[op]}  '%{str(value)}'"
             elif op == "rlike":
-                sql_condition = f"{field} {opDic[op]}  '{str(value)}%'"
-            elif op == "like":
-                sql_condition = f"{field} {opDic[op]}  '%{str(value)}%'"
+                sql_condition = f"{tableName.tableChangeDict[field]} {opDic[op]}  '{str(value)}%'"
+            elif op in ["like", "contains"]:
+                sql_condition = f"{tableName.tableChangeDict[field]} {opDic[op]}  '%{str(value)}%'"
             elif op in ["in", "not in", "is"]:
-                sql_condition = f"{field} {opDic[op]}  '{str(value)}'"
+                sql_condition = f"{tableName.tableChangeDict[field]} {opDic[op]}  {str(value)}"
             else:
-                sql_condition = f"{field} {opDic[op]}  {str(value)}"
+                sql_condition = f"{tableName.tableChangeDict[field]} {opDic[op]}  '{str(value)}'"
             conditionList.append(sql_condition)
         sqlStr = " and ".join(conditionList)
     if sqlStr.strip():
@@ -309,7 +219,7 @@ def serachView(dataDict: dict, tableName: db.Model, groupBy: str = "", orderBySt
     pageIndex: int = pageDic.get("pageIndex", 1)
     pageSize: int = pageDic.get("pageSize", 20)
     if pageIndex <= 0: pageIndex = 1
-    if pageSize > 50: pageSize = 50
+    if pageSize > 1000: pageSize = 50
     try:
         sqlStrquery = text(sqlStr)
         orderByStr = text(orderByStr.strip())
@@ -318,7 +228,7 @@ def serachView(dataDict: dict, tableName: db.Model, groupBy: str = "", orderBySt
             tableList = tableName.query.filter(sqlStrquery).group_by(groupBy).order_by(orderByStr)
         else:
             tableList = tableName.query.group_by(groupBy).order_by(orderByStr)
-            # 这样返回可以使用更多分页的特性
+        # 这样返回可以使用更多分页的特性
         return tableList.paginate(pageIndex, per_page=pageSize, error_out=False)
     except Exception as  e:
         logger.error(e)
@@ -326,7 +236,7 @@ def serachView(dataDict: dict, tableName: db.Model, groupBy: str = "", orderBySt
 
 
 # 事务
-class TransactionClass(object):
+class TransactionClass(Common):
     """
     事务处理
     """
@@ -334,6 +244,19 @@ class TransactionClass(object):
     def __init__(self):
         self._session = db.session
         self._engine = db.engine
+
+    def insert(self, table, **kwargs):
+        """
+        先把驼峰结构转换为 小写加下划线 | isDelete -> is_delete
+        :param kwargs: dict
+        :return:
+        """
+        tableDict = dict()
+        for key, value in kwargs.items():
+            key = table.check_Up_key_in_str(key)
+            tableDict[key] = value
+        instance = table(**tableDict)
+        return self.save(instance)
 
     def save(self, ins):
         """
@@ -350,15 +273,18 @@ class TransactionClass(object):
             return False
         return ins
 
-    def update(self, ins, dataDict):
+    def update(self, ins, dataDict, is_hump=True):
         """
         模型更新
         :param ins: object
         :param dataDict: 更新信息
+        :param is_hump: 是否是驼峰 默认 false
         :return:
         """
         try:
             for key, value in dataDict.items():
+                if is_hump:
+                    key = self.check_Up_key_in_str(key)
                 setattr(ins, key, value)
             self._session.add(ins)
             self._session.flush()
@@ -419,8 +345,10 @@ class TransactionClass(object):
         """
         try:
             self._session.rollback()
+            return True
         except Exception as e:
             logger.error(e)
+            return False
 
     def select_sql(self, sql):
         """

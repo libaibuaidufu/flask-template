@@ -3,3 +3,5 @@
 wtempmodel/*
 migrations/*
 unup/*
+/log/
+/uploads/
