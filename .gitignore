@@ -3,3 +3,6 @@
 wtempmodel/*
 migrations/*
 unup/*
+/log/
+/uploads/
+/settings/dev.sqlite

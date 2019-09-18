@@ -5,12 +5,6 @@
 # @author  : dfkai
 # @Software: PyCharm
 import logging.config
-import os
 
-baseDir = os.getcwd()
-
-# 日志
-if not os.path.join(baseDir, "log"):
-    os.mkdir(os.path.join(baseDir, "log"))
 logging.config.fileConfig("log.conf")
 logger = logging.getLogger("cse")

@@ -3,10 +3,10 @@
 from flask import request, json, jsonify
 
 from apps.example import example_api
+from models import Example
+from models.views import ViewExample
+from settings.db import TransactionClass, serachView
 from utils.ReturnMessage import returnMsg, errorCode, returnErrorMsg
-from models.Example import Example
-from models.views.ViewExample import ViewExample
-from settings.dataBase import TransactionClass, serachView
 
 
 # select list view
@@ -14,15 +14,15 @@ from settings.dataBase import TransactionClass, serachView
 def findViewExampleByCondition():
     jsonData: str = request.get_data()
     dataDict: dict = json.loads(jsonData)
-    groupBy = "group by id"
-    orderByStr = " order by sort_id desc "
+    groupBy = " id"
+    orderByStr = " sort_id desc "
     otherCondition = " id != 99 "
     resultList = serachView(dataDict, ViewExample, groupBy=groupBy, orderByStr=orderByStr,
                             otherCondition=otherCondition)
     infoList = []
     if resultList:
         for result in resultList.items:
-            data = result.get_info_by_dict()
+            data = result.get_dict()
             infoList.append(data)
         infoDict = dict(data=infoList, total=resultList.total)
         resultDict = returnMsg(infoDict)
@@ -40,7 +40,7 @@ def findExampleByCondition():
     infoList = []
     if resultList:
         for result in resultList.items:
-            data = result.get_info_by_dict()
+            data = result.get_dict()
             infoList.append(data)
         infoDict = dict(data=infoList, total=resultList.total)
         resultDict = returnMsg(infoDict)
@@ -56,7 +56,7 @@ def addExample():
     dataDict: dict = json.loads(jsonData)
     table = Example.insert(**dataDict)
     if table:
-        resultDict = returnMsg(table.to_dict())
+        resultDict = returnMsg(table.get_dict())
     else:
         resultDict = returnErrorMsg(errorCode["insert_fail"])
     return jsonify(resultDict)
@@ -73,7 +73,7 @@ def updateExample():
         return jsonify((resultDict))
     table = Example.get_ins_by_id(id)
     if table.update(**dataDict):
-        resultDict = returnMsg(table.to_dict())
+        resultDict = returnMsg(table.get_dict())
     else:
         resultDict = returnErrorMsg(errorCode["update_fail"])
     return jsonify(resultDict)
@@ -111,7 +111,27 @@ def getExampleInfo():
         return jsonify(resultDict)
     table = Example.get_ins_by_id(id)
     if table:
-        infoDict = table.to_dict()
+        # 三种获取值得方式
+        re_list = ["name"]
+        infoDict = table.get_dict(re_list=re_list)
+        print(infoDict)
+        # {'name': 'dfk'}
+
+        pop_list = ["name"]
+        infoDict = table.get_dict(pop_list=pop_list)
+        print(infoDict)
+        # {'id': 1, 'title': 'dfk2', 'is_albums': 0, 'is_attach': 0, 'is_spec': 0, 'sort_id': 99}
+
+        re_list = [Example.name]
+        infoDict = table.get_dict(re_list=re_list, is_model=True)
+        print(infoDict)
+        # {'name': 'dfk'}
+
+        pop_list = [Example.name]
+        infoDict = table.get_dict(pop_list=pop_list, is_model=True)
+        print(infoDict)
+        # {'id': 1, 'title': 'dfk2', 'is_albums': 0, 'is_attach': 0, 'is_spec': 0, 'sort_id': 99}
+
         resultDict = returnMsg(infoDict)
     else:
         resultDict = returnErrorMsg(errorCode["query_fail"])
@@ -124,12 +144,24 @@ def testTrans():
     jsonData: str = request.get_data()
     dataDict: dict = json.loads(jsonData)
     trans = TransactionClass()
-    table = Example.insert(dataDict)
+    table = Example.insert(**dataDict)
     table = trans.save(table)
-    print(table.to_dict())
+    print(table.get_dict())
     try:
         # trans.commit()
         raise ValueError
     except:
         trans.rollback()
     return jsonify(returnMsg())
+
+
+@example_api.route("/testSelectForUpdate")
+def testSelectForUpdate():
+    example = Example.query.filter(Example.id == 1).with_for_update()
+    print(example)
+    print(example.one().name)
+    import time
+    time.sleep(20)
+    dataDict = dict(name="libai")
+    example.update(dataDict)
+    return jsonify(dict(code=1))

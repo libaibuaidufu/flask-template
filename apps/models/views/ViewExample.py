@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-from settings.dataBase import CRUDMixin, db
+from settings.db import CRUDMixin, db
 
 
 class ViewExample(db.Model, CRUDMixin):
     __tablename__ = "view_example"
-
+    __table_args__ = {"info": dict(is_view=True)}  # 不会被创建成表
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     name = db.Column(db.String(50))
     title = db.Column(db.String(100))
@@ -13,33 +13,5 @@ class ViewExample(db.Model, CRUDMixin):
     is_spec = db.Column(db.Integer)
     sort_id = db.Column(db.Integer)
 
-    def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-    def get_info(self):
-        info_dict = {
-            "id": self.id,
-            "name": self.name,
-            "title": self.title,
-            "isAlbums": self.is_albums,
-            "isAttach": self.is_attach,
-            "isSpec": self.is_spec,
-            "sortId": self.sort_id,
-        }
-        return info_dict
-
     def __str__(self):
         return 'id : %s' % self.id
-
-    tableChangeDict = {
-        "id": "id",
-        "name": "name",
-        "title": "title",
-        "isAlbums": "is_albums",
-        "isAttach": "is_attach",
-        "isSpec": "is_spec",
-        "sortId": "sort_id"
-    }
-
-    intList = ['id', 'isAlbums', 'isAttach', 'isSpec', 'sortId']
