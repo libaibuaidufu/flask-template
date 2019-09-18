@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Time    : 2019/7/19 16:06
-# @File    : dataBase.py
+# @File    : db.py
 # @author  : dfkai
 # @Software: PyCharm
 from datetime import datetime
@@ -87,7 +87,8 @@ class CRUDMixinNotId(Common):
     基础版本 没有使用驼峰转换
     """
     __table_args__ = {'extend_existing': True}
-    id = db.Column(db.Integer, primary_key=True)
+
+    # __abstract__ = True
 
     @classmethod
     def insert(cls, *args, **kwargs: dict):
@@ -171,16 +172,20 @@ class CRUDMixinNotId(Common):
             return cls.query.get(int(id))
         return False
 
-    def get_dict(self, re_list: list = [], not_list=[]):
+    def get_dict(self, re_list: list = [], pop_list=[], is_model=False):
         """
         通过 实例__dict__直接获取 字典格式，但是里面有一个不需要的 _sa_instance_state 直接pop掉
-        但是不是驼峰结构 可以在转换一下
         改用 to_dict
+        re_list and not_list　,only use one
+
         :return:
         """
         infoDict = self.to_dict()
-        if not_list:
-            for key in not_list:
+        if is_model:
+            pop_list = list(map(lambda x: x.__str__().rsplit(".", 1)[-1], pop_list))
+            re_list = list(map(lambda x: x.__str__().rsplit(".", 1)[-1], re_list))
+        if pop_list:
+            for key in pop_list:
                 if key in infoDict:
                     infoDict.pop(key)
             return infoDict
@@ -192,33 +197,13 @@ class CRUDMixinNotId(Common):
             return re_dict
         return infoDict
 
-    def to_dict_table(self, re_list: list = [], is_in_use: bool = False, is_not_in_use: bool = False):
-        """
-        通过模型来获取值
-        :param re_list:
-        :param is_in_use:
-        :param is_not_in_use:
-        :return:
-        """
-        infoDict = dict()
-        if is_in_use or is_not_in_use:
-            re_list = list(map(lambda x: x.__str__().rsplit(".", 1)[-1], re_list))
-        for c in self.__table__.columns:
-            if c.name in re_list and is_in_use:
-                infoDict[c.name] = getattr(self, c.name, None)
-            if c.name not in re_list and is_not_in_use:
-                infoDict[c.name] = getattr(self, c.name, None)
-        return infoDict
-
     def to_dict(self):
         return {c.name: getattr(self, c.name, None) for c in self.__table__.columns}
 
 
 # 非驼峰结构
 class CRUDMixin(CRUDMixinNotId):
-    __table_args__ = {'extend_existing': True}
-
-    id = db.Column(db.Integer, nullable=False, unique=True, primary_key=True)
+    id = db.Column(db.Integer, nullable=False, primary_key=True)
 
     @classmethod
     def get_ins_by_ids(cls, ids):

@@ -16,5 +16,5 @@ DEBUG = True
 
 # db
 SQLALCHEMY_DATABASE_URI = f'sqlite:///{dev_db}'
-# SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@127.0.0.1:3306/dev?charset=utf8'
+# SQLALCHEMY_DATABASE_URI = 'mysql://root:123456@127.0.0.1:3306/dev?charset=utf8'
 SQLALCHEMY_TRACK_MODIFICATIONS = True

@@ -8,13 +8,78 @@
 from sqlalchemy import text
 
 from settings.config import db
-from settings.dataBase import Common
 from settings.log import logger
+
+
+class Common(object):
+    @classmethod
+    def check_data_dict_has_must_key(cls, dataDict: dict, checkList: list) -> bool:
+        """
+        检查 是否含有必有的字段
+        :param dataDict:
+        :param checkList:
+        :return:
+        """
+        for checkValue in checkList:
+            if not dataDict.get(checkValue, None):
+                return False
+        return True
+
+    @classmethod
+    def pop_data_dict_no_update_key(cls, dataDict: dict, popList: list) -> dict:
+        """
+        去掉拒绝更新的字段
+        :param dataDict:
+        :param popList:
+        :return:
+        """
+        for checkValue in popList:
+            if checkValue in dataDict.keys():
+                dataDict.pop(checkValue)
+        return dataDict
+
+    @classmethod
+    def check_Up_key_in_str(cls, key: str):
+        """
+        解决驼峰单词 不是模型命名字段
+        classmethod 是为了 给insert使用
+        :param key:
+        :return:
+        """
+        if key.islower():
+            return key
+        newKey = ""
+        for index, pk in enumerate(key):
+            if pk in "ABCDEFGHIJKLMNOPQRSTUVWXZY":
+                newKey += f"_{pk.lower()}"
+            else:
+                newKey += pk
+        return newKey
+
+    @classmethod
+    def up_first_key(cls, dataDict):
+        """
+        单词下划线 转换为 驼峰
+        :param dataDict:
+        :return:
+        """
+        infoDict = dict()
+        for key, value in dataDict.items():
+            n_key = ""
+            key_list = key.split("_")
+            for index, pk in enumerate(key_list):
+                if index == 0:
+                    n_key += pk
+                else:
+                    n_key += pk[:1].upper() + pk[1:].lower()
+                if len(key_list) == index + 1:
+                    infoDict[n_key] = value
+        return infoDict
 
 
 # Not id
 class CRUDMixinNotId(Common):
-    __table_args__ = {'extend_existing': True}
+    # __table_args__ = {'extend_existing': True}
 
     @classmethod
     def insert(cls, *args, **kwargs: dict):
@@ -130,7 +195,7 @@ class CRUDMixinNotId(Common):
 
 # 驼峰结构 版本
 class CRUDMixin(CRUDMixinNotId):
-    __table_args__ = {'extend_existing': True}
+    # __table_args__ = {'extend_existing': True}
 
     id = db.Column(db.Integer, nullable=False, unique=True, primary_key=True)
 

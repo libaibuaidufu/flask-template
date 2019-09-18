@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from settings.dataBase import CRUDMixin, db
+from settings.db import CRUDMixin, db
 
 
 class ViewExample(db.Model, CRUDMixin):

@@ -8,7 +8,6 @@ from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 
 from settings.config import create_app, db
-
 os.environ.setdefault("FLASK_SETTINGS_MODULE", "dev_config.py")
 
 app = create_app(config="dev_config.py")

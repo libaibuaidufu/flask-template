@@ -30,15 +30,15 @@ def visit_create_view(element, compiler, **kw):
 
 
 # create_view
-def create_view():
+def create_view(sql, view_name):
     """
     创建视图
     :return:
     """
     app = create_app(config="dev_config.py")
-    definition = text("""select * from example where id>=1""")
+    definition = text(sql)
     with app.app_context():
-        createview = CreateView('view_example', definition)
+        createview = CreateView(view_name, definition)
         db.engine.execute(createview)
 
 
