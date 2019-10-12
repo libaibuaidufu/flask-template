@@ -6,13 +6,23 @@
 # @Software: PyCharm
 from datetime import datetime
 
+try:
+    import MySQLdb
+except:
+    import pymysql as MySQLdb
+from flask_sqlalchemy import Pagination
 from sqlalchemy import text
 
 from settings.config import db
 from settings.log import logger
 
-now = datetime.now()
-now_date = datetime.now().date()
+
+def now():
+    return datetime.now()
+
+
+def now_date():
+    return datetime.now().date()
 
 
 class Common(object):
@@ -270,6 +280,8 @@ def serachView(dataDict: dict, tableName: db.Model, groupBy: str = "", orderBySt
             if field not in tableName.__table__.columns:
                 # 如果模型中没有此字段 就跳过
                 continue
+            if isinstance(value, str):
+                value = MySQLdb.escape_string(value)
             if op == "llike":
                 sql_condition = f"{field} {opDic[op]}  '%{str(value)}'"
             elif op == "rlike":
@@ -307,7 +319,7 @@ def serachView(dataDict: dict, tableName: db.Model, groupBy: str = "", orderBySt
         return tableList.paginate(pageIndex, per_page=pageSize, error_out=False)
     except Exception as  e:
         logger.error(e)
-        return []
+        return Pagination(None, None, None, 0, [])
 
 
 # 事务
@@ -406,6 +418,156 @@ class TransactionClass(object):
             self._session.rollback()
         except Exception as e:
             logger.error(e)
+
+    def select_sql(self, sql):
+        """
+        查询sql
+        :param sql:
+        :return:
+        """
+        try:
+            result = self._session.execute(sql).fetchall()
+            self._session.flush()
+        except Exception as e:
+            self._session.rollback()
+            logger.error(e)
+            return False
+        return result
+
+    def delete_sql(self, sql):
+        """
+        删除sql
+        :param sql:
+        :return:
+        """
+        try:
+            self._session.execute(sql)
+            self._session.flush()
+        except Exception as e:
+            self._session.rollback()
+            logger.error(e)
+            return False
+        return True
+
+    def insert_sql(self, sql):
+        """
+        sql 插入
+        如 获取 新增后的数据 ,单个 可使用 get_cls_by_id,多个 执行sql
+        :param sql:
+        :param table_name:
+        :param only_key:
+        :return:
+        """
+        try:
+            self._session.execute(sql)
+            self._session.flush()
+        except Exception as e:
+            self._session.rollback()
+            logger.error(e)
+            return False
+        return True
+
+    def update_sql(self, sql):
+        """
+        sql 更新
+        如 获取 更新后的数据 ,单个 可使用 get_cls_by_id,多个 执行sql
+        :param sql:
+        :return:
+        """
+
+        try:
+            self._session.execute(sql)
+            self._session.flush()
+        except Exception as e:
+            self._session.rollback()
+            logger.error(e)
+            return False
+        return True
+
+
+# with 事务
+class TransactionClassWith(object):
+    """
+    事务处理
+    """
+
+    def __init__(self):
+        self._session = db.session
+        self._engine = db.engine
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_tb is None:
+            self._session.commit()
+        else:
+            logger.error(exc_type + exc_val + exc_tb)
+            self._session.rollback()
+
+    def save(self, ins):
+        """
+        模型 新增 保存
+        :param ins:
+        :return:
+        """
+        try:
+            self._session.add(ins)
+            self._session.flush()
+        except Exception as e:
+            self._session.rollback()
+            logger.error(e)
+            return False
+        return ins
+
+    def update(self, ins, dataDict):
+        """
+        模型更新
+        :param ins: object
+        :param dataDict: 更新信息
+        :return:
+        """
+        try:
+            for key, value in dataDict.items():
+                setattr(ins, key, value)
+            self._session.add(ins)
+            self._session.flush()
+        except Exception as e:
+            self._session.rollback()
+            logger.error(e)
+            return False
+        return ins
+
+    def deleteList(self, inss: list):
+        """
+        模型 批量删除
+        :param inss:
+        :return:
+        """
+        try:
+            for ins in inss:
+                self._session.delete(ins)
+                self._session.flush()
+        except Exception as e:
+            self._session.rollback()
+            logger.error(e)
+            return False
+        return True
+
+    def delete(self, ins):
+        """
+        模型 删除
+        :param ins:
+        :return:
+        """
+        try:
+            self._session.delete(ins)
+            self._session.flush()
+        except Exception as e:
+            self._session.rollback()
+            logger.error(e)
+            return False
+        return True
 
     def select_sql(self, sql):
         """

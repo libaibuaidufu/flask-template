@@ -5,10 +5,20 @@
 # @author  : dfkai
 # @Software: PyCharm
 
+from datetime import datetime
+
 from sqlalchemy import text
 
 from settings.config import db
 from settings.log import logger
+
+
+def now():
+    return datetime.now()
+
+
+def now_date():
+    return datetime.now().date()
 
 
 class Common(object):
