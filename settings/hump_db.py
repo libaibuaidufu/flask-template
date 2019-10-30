@@ -154,7 +154,7 @@ class CRUDMixinNotId(Common):
             return cls.query.get(int(id))
         return False
 
-    def get_dict(self, re_list: list = [], not_list=[], is_lower: bool = False):
+    def to_json(self, re_list: list = [], not_list=[], is_lower: bool = False):
         """
         通过 实例__dict__直接获取 字典格式，但是里面有一个不需要的 _sa_instance_state 直接pop掉
         但是不是驼峰结构 可以在转换一下
@@ -202,7 +202,16 @@ class CRUDMixinNotId(Common):
     def to_dict(self):
         return {c.name: getattr(self, c.name, None) for c in self.__table__.columns}
 
-
+    def table_change_dict(self):
+        tableDict = dict()
+        for c in self.__table__.columns:
+            if "_" not in c.name:
+                tableDict[c.name] = c.name
+            else:
+                key = str(c.name).title()
+                key = (key[0].lower() + key[1:]).replace("_", "")
+                tableDict[key] = c.name
+        return tableDict
 # 驼峰结构 版本
 class CRUDMixin(CRUDMixinNotId):
     # __table_args__ = {'extend_existing': True}

@@ -52,44 +52,6 @@ class Common(object):
                 dataDict.pop(checkValue)
         return dataDict
 
-    @classmethod
-    def check_Up_key_in_str(cls, key: str):
-        """
-        解决驼峰单词 不是模型命名字段
-        classmethod 是为了 给insert使用
-        :param key:
-        :return:
-        """
-        if key.islower():
-            return key
-        newKey = ""
-        for index, pk in enumerate(key):
-            if pk in "ABCDEFGHIJKLMNOPQRSTUVWXZY":
-                newKey += f"_{pk.lower()}"
-            else:
-                newKey += pk
-        return newKey
-
-    @classmethod
-    def up_first_key(cls, dataDict):
-        """
-        单词下划线 转换为 驼峰
-        :param dataDict:
-        :return:
-        """
-        infoDict = dict()
-        for key, value in dataDict.items():
-            n_key = ""
-            key_list = key.split("_")
-            for index, pk in enumerate(key_list):
-                if index == 0:
-                    n_key += pk
-                else:
-                    n_key += pk[:1].upper() + pk[1:].lower()
-                if len(key_list) == index + 1:
-                    infoDict[n_key] = value
-        return infoDict
-
 
 # 非驼峰结构 not Id
 class CRUDMixinNotId(Common):
@@ -182,12 +144,15 @@ class CRUDMixinNotId(Common):
             return cls.query.get(int(id))
         return False
 
-    def get_dict(self, re_list: list = [], pop_list=[], is_model=False):
+    def to_json(self, re_list: list = [], pop_list=[], is_model=False):
         """
         通过 实例__dict__直接获取 字典格式，但是里面有一个不需要的 _sa_instance_state 直接pop掉
         改用 to_dict
         re_list and not_list　,only use one
-
+        可以继承修改
+        :param re_list: require
+        :param pop_list: pop
+        :param is_model: use db.Model
         :return:
         """
         infoDict = self.to_dict()
